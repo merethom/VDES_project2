@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<!-- three.js library -->
+<script src='js/three.js'></script>
+<!-- jsartookit -->
+<script src="vendor/jsartoolkit5/build/artoolkit.min.js"></script>
+<script src="vendor/jsartoolkit5/js/artoolkit.api.js"></script>
+<!-- include threex.artoolkit -->
+<script src="threex-artoolkitsource.js"></script>
+<script src="threex-artoolkitcontext.js"></script>
+<script src="threex-armarkercontrols.js"></script>
+
+<script>
+    THREEx.ArToolkitContext.baseURL = '/'
+
+</script>
+
+<style>
+    body {
+        background: #e2e2e2;
+        margin: 0px;
+        overflow: hidden;
+        font-family: Helvetica, Arial, Sans-Serif;
+    }
+
+    canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    #button {
+        padding: 0;
+        margin: 0;
+        width: 100vw;
+        height: 12vh;
+        display: inline-block;
+    }
+
+    #button button {
+        margin-top: 90vh;
+        width: 20%;
+        height: 50%;
+        font-size: 100%;
+        color: white;
+        text-align: center;
+        z-index: 100;
+
+    }
+
+    #button:hover {
+        cursor: pointer;
+    }
+
+    #leftbutton:active {
+        background-color: green;
+        box-shadow: 0 5px #666;
+        transform: translateY(2px);
+    }
+
+    #rightbutton:active {
+        background-color: red;
+        box-shadow: 0 5px #666;
+        transform: translateY(2px);
+    }
+
+    #leftbutton {
+        width: 100%;
+        float: left;
+        background-color: dimgray;
+        position: relative;
+        margin-left: 15%;
+        border-radius: 5px;
+        line-height: 100%;
+    }
+
+    #rightbutton {
+        width: 100%;
+        float: right;
+        background-color: dimgray;
+        position: relative;
+        margin-right: 15%;
+        border-radius: 5px;
+        line-height: 100%;
+    }
+
+</style>
+
+<body>
+
+    <div id="button">
+        <button id="leftbutton" onclick="Grow()">GROW</button>
+        <button id="rightbutton" onclick="Shrink()">SHRINK</button>
+    </div>
+
+    <script>
+        //BASIC EXAMPLES OF MARKER BASED AUGMENTED REALITY:
+        //IMAGES, SCALE, POSITION, ROTATION, OPACITY, SOUND, INTERACTIVITY 
+        //By Lucas Di Monte 2018, contact me on facebook messenger for help.
+        //All the basics are here, use JavaScript and CSS to play around and see what you can come up with.
+        //Please note that you will need a button in order to initialize sound on a mobile device.
+        //This will primarily be designed for a smart phone/tablet, keep that in mind when styling CSS.
+        //Use the mobile emulation mode in Chrome for proper framing.
+
+        //////////Init Variables
+        var renderer, scene, camera;
+        var arToolkitContext, onRenderFcts, arToolkitSource, markerRoot, markerRoot2, markerRoot3, artoolkitMarker, lastTimeMsec;
+        var sprite, sprite2, sprite3, sprite4, sprite5;
+        var params = {
+            opacity: 1
+        };
+
+        //////////Audio Variables, sawp in your audio files here
+
+        var audio1 = new Audio('audio/audio1.mp3');
+        var audio2 = new Audio('audio/audio2.mp3');
+        var audio3 = new Audio('audio/audio3.mp3');
+        var audio4 = new Audio('audio/pro gun control.mp3');
+        var audio5 = new Audio('audio/anti gun control.mp3');
+
+        //////////Sprite Maps, map your images here
+
+        var spriteMap = new THREE.TextureLoader().load("img/sprite.png");
+        var spriteMaterial = new THREE.SpriteMaterial({
+            map: spriteMap,
+            color: 0xffffff
+        });
+        sprite = new THREE.Sprite(spriteMaterial);
+
+        var spriteMap = new THREE.TextureLoader().load("img/sprite.png");
+        var spriteMaterial = new THREE.SpriteMaterial({
+            opacity: params.opacity,
+            map: spriteMap,
+            color: 0xffffff
+        });
+        sprite = new THREE.Sprite(spriteMaterial);
+
+        var spriteMap2 = new THREE.TextureLoader().load("img/sprite2.png");
+        var spriteMaterial2 = new THREE.SpriteMaterial({
+            map: spriteMap2,
+            color: 0xffffff
+        });
+        sprite2 = new THREE.Sprite(spriteMaterial2);
+
+        var spriteMap2 = new THREE.TextureLoader().load("img/sprite2.png");
+        var spriteMaterial2 = new THREE.SpriteMaterial({
+            opacity: params.opacity,
+            map: spriteMap2,
+            color: 0xffffff
+        });
+        sprite2 = new THREE.Sprite(spriteMaterial2);
+
+        var spriteMap3 = new THREE.TextureLoader().load("img/sprite3.png");
+        var spriteMaterial3 = new THREE.SpriteMaterial({
+            map: spriteMap3,
+            color: 0xffffff
+        });
+        sprite3 = new THREE.Sprite(spriteMaterial3);
+
+        var spriteMap3 = new THREE.TextureLoader().load("img/sprite3.png");
+        var spriteMaterial3 = new THREE.SpriteMaterial({
+            opacity: params.opacity,
+            map: spriteMap3,
+            color: 0xffffff,
+
+        });
+        
+        sprite3 = new THREE.Sprite(spriteMaterial3);
+
+        var spriteMap4 = new THREE.TextureLoader().load("img/sprite4.png");
+        var spriteMaterial4 = new THREE.SpriteMaterial({
+            map: spriteMap4,
+            color: 0xffffff
+        });
+        sprite4 = new THREE.Sprite(spriteMaterial4);
+
+        var spriteMap4 = new THREE.TextureLoader().load("img/sprite4.png");
+        var spriteMaterial4 = new THREE.SpriteMaterial({
+            opacity: params.opacity,
+            map: spriteMap4,
+            color: 0xffffff,
+
+        });
+        
+        sprite4 = new THREE.Sprite(spriteMaterial4);
+
+        var spriteMap5 = new THREE.TextureLoader().load("img/sprite5.png");
+        var spriteMaterial5 = new THREE.SpriteMaterial({
+            map: spriteMap5,
+            color: 0xffffff
+        });
+        sprite5 = new THREE.Sprite(spriteMaterial5);
+
+        var spriteMap5 = new THREE.TextureLoader().load("img/sprite5.png");
+        var spriteMaterial5 = new THREE.SpriteMaterial({
+            opacity: params.opacity,
+            map: spriteMap5,
+            color: 0xffffff,
+
+        });
+        
+        sprite5 = new THREE.Sprite(spriteMaterial5);
+
+        //////////Initial sprite sizes and locations
+
+        sprite.position.set(0, 0, 0);
+        sprite.scale.set(1, 1, 1);
+
+        sprite2.position.set(0, 0, 0);
+        sprite2.scale.set(1, 1, 1);
+
+        sprite3.position.set(0, 0, 0);
+        //////////Notice: this one is larger, as an example
+        sprite3.scale.set(3, 3, 3);
+        
+        sprite4.position.set(0, 0, 0);
+        
+        sprite4.scale.set(1, 1, 1);
+        
+        sprite5.position.set(0, 0, 0);
+        
+        sprite5.scale.set(1, 1, 1);
+
+        //////////Custom Functions
+
+        function Grow() {
+            sprite.scale.y += 0.5;
+            sprite2.scale.y += 0.5;
+            sprite3.scale.y += 0.5;
+            sprite4.scale.y += 0.5;
+            sprite5.scale.y += 0.5;
+        }
+
+        function Shrink() {
+            sprite.scale.y -= 0.5;
+            sprite2.scale.y -= 0.5;
+            sprite3.scale.y -= 0.5;
+            sprite4.scale.y -= 0.5;
+            sprite5.scale.y -= 0.5;
+        }
+
+        //////////Run Init Function
+
+        init();
+
+        //////////Init Renderer, you won't need to touch this
+        function init() {
+            renderer = new THREE.WebGLRenderer({
+                alpha: true
+            });
+            renderer.setClearColor(new THREE.Color('lightgrey'), 0);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            onRenderFcts = [];
+            scene = new THREE.Scene();
+            var ambient = new THREE.AmbientLight(0x666666);
+            scene.add(ambient);
+            var directionalLight = new THREE.DirectionalLight(0x4e5ba0);
+            directionalLight.position.set(-1, 1, 1).normalize();
+            scene.add(directionalLight);
+            camera = new THREE.Camera();
+            scene.add(camera);
+            arToolkitSource = new THREEx.ArToolkitSource({
+                sourceType: 'webcam',
+            });
+            arToolkitSource.init(function onReady() {
+
+                arToolkitSource.onResize(renderer.domElement)
+            });
+            window.addEventListener('resize', function() {
+                arToolkitSource.onResize(renderer.domElement)
+            });
+            arToolkitContext = new THREEx.ArToolkitContext({
+                cameraParametersUrl: 'data/camera_para.dat',
+                detectionMode: 'mono',
+                maxDetectionRate: 30,
+                canvasWidth: 80 * 3,
+                canvasHeight: 60 * 3,
+            });
+            arToolkitContext.init(function onCompleted() {
+                camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+            });
+            onRenderFcts.push(function() {
+                if (arToolkitSource.ready === false) return
+                arToolkitContext.update(arToolkitSource.domElement)
+            });
+
+            //////////Add your custom .patt's here at 'patternUrl', make sure the .patt file is in the data folder
+
+            markerRoot = new THREE.Group
+            scene.add(markerRoot)
+            artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
+                type: 'pattern',
+                patternUrl: 'data/mega.patt'
+            });
+
+
+            markerRoot2 = new THREE.Group
+            scene.add(markerRoot2)
+            artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot2, {
+                type: 'pattern',
+                patternUrl: 'data/patt.kanji'
+            });
+
+            markerRoot3 = new THREE.Group
+            scene.add(markerRoot3)
+            artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot3, {
+                type: 'pattern',
+                patternUrl: 'data/patt.hiro'
+
+            });
+             markerRoot4 = new THREE.Group
+            scene.add(markerRoot4)
+            artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot4, {
+                type: 'pattern',
+                patternUrl: 'data/flag.patt'
+
+            });
+             markerRoot5 = new THREE.Group
+            scene.add(markerRoot5)
+            artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot5, {
+                type: 'pattern',
+                patternUrl: 'data/flag2.patt'
+
+            });
+
+            //////////Assign sprites to markers here
+            markerRoot.add(sprite);
+            markerRoot2.add(sprite2);
+            markerRoot3.add(sprite3);
+            markerRoot4.add(sprite4);
+            markerRoot5.add(sprite5);
+            onRenderFcts.push(function() {});
+            onRenderFcts.push(function() {
+                renderer.render(scene, camera)
+            });
+            lastTimeMsec = null;
+            animate();
+        }
+
+        function animate(nowMsec) {
+            requestAnimationFrame(animate);
+            lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60;
+            var deltaMsec = Math.min(200, nowMsec - lastTimeMsec);
+            lastTimeMsec = nowMsec;
+            pulse = Date.now() * 0.0009;
+            onRenderFcts.forEach(function(onRenderFct) {
+                onRenderFct(deltaMsec / 1000, nowMsec / 1000);
+            });
+
+            //////////Audio player logic, for mobile you require a button in order for sound to begin playing
+            if (markerRoot.visible === true) {
+                audio1.play();
+            }
+            if (markerRoot.visible === false) {
+                audio1.pause();
+            }
+            if (markerRoot2.visible === true) {
+                audio2.play();
+            }
+
+            if (markerRoot2.visible === false) {
+                audio2.pause();
+            }
+            if (markerRoot3.visible === true) {
+                audio3.play();
+            }
+            if (markerRoot3.visible === false) {
+                audio3.pause();
+            }
+            if (markerRoot4.visible === true) {
+                audio4.play();
+            }
+            if (markerRoot4.visible === false) {
+                audio4.pause();
+            }
+            if (markerRoot5.visible === true) {
+                audio5.play();
+            }
+            if (markerRoot5.visible === false) {
+                audio5.pause();
+            }
+
+            /////Sprite3-"Animation"
+            spriteMaterial3.rotation += 0.005;
+            spriteMaterial3.opacity -= 0.002;
+
+            if (spriteMaterial3.opacity <= 0) {
+                spriteMaterial3.opacity = 1;
+            }
+        }
+
+    </script>
+</body>
